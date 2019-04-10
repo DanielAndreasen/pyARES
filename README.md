@@ -20,16 +20,38 @@ from ARES import ARES
 config = {'specfits': 'path/to/fits',
           'readlinedat': 'path/to/linelist',
           'fileout': 'path/to/output'}
-a = ARES(**config)  # Setup ARES
-a.run()             # Run ARES
-output = ARES.read_output(config['fileout']) # Return an ARESOutput object
-rv = ARES.get_rv()  # Get the RV as meausered by ARES
+a = ARES(**config)   # Setup and run ARES
+output = ARES.output # Return an ARESOutput object
+rv = ARES.rv         # Get the RV as meausered by ARES
 ```
+
+## Run `ARES` from an input file
+If you prefer to edit the `mine.opt` file by hand, that is possible as well.
+```python
+from ARES import ARES
+
+a = ARES.from_config('path/to/mine.opt')  # Does not have to be called mine.opt, but need same structure
+output = a.output
+```
+
+
+## Get RV and/or output from a previous run
+If you have run ARES from another application, and you just want to analyse the results, you can do that as well!
+```python
+from ARES import ARES
+
+output = ARES.read_output('path/to/output')
+rv = ARES.get_rv('path/to/log')
+```
+Be careful, the log file is overwritten everytime `ARES` is run on new. It is called `logARES.txt` and is the default
+value of `ARES.get_rv`.
+
 
 ## Plotting with ARESOutput
 ```python
 # Run ARES and get the output object
-output = ARES.read_output(config['fileout'])
+a = ARES(**config)
+output = ARES.output
 plt.figure()
 output.plot('EW')  # Plot EW against wavelength
 

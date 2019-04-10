@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import pandas as pd
+from time import time
 
 
 _COLS = ('wavelength', 'nlines', 'depth', 'fwhm',
@@ -9,15 +10,16 @@ _COLS = ('wavelength', 'nlines', 'depth', 'fwhm',
 
 
 class ARES:
-    def __init__(self, *arg, **kwargs):
+    def __init__(self, verbose=False, *arg, **kwargs):
         self._config_created = False
+        self._run_completed = False
         self.kwargs = kwargs
         self._create_config()
-        self.outputfile = self.kwargs.get('fileout', 'test.ares')
+        self._run(verbose=verbose)
 
     @classmethod
     def from_config(cls, fname):
-        with open(fname) as lines:
+        with open(fname, 'rb') as lines:
             kwargs = dict()
             for line in lines:
                 line = line.split('=')
@@ -42,18 +44,34 @@ class ARES:
             f.writelines(fout)
         self._config_created = True
 
-    def run(self, verbose=False):
+    def _run(self, verbose=False):
         if not self._config_created:
             self._create_config()
         if verbose:
             print('Running ARES...')
+        begin = time()
         os.system('ARES > /dev/null')
+        end = time()
         if verbose:
-            print(f'Done! Result saved in {self.kwargs.get("fileout", "aresout.dat")}')
+            print(f'Done in {round(begin-end)}s.\nResult saved in {self.kwargs.get("fileout", "aresout.dat")}.')
+        self._run_completed = True
+
+    @property
+    def output(self):
+        if not self._run_completed:
+            raise ValueError('Run ARES before obtaining the output')
+        return ARESOutput(self.kwargs.get('fileout'))
 
     @staticmethod
     def read_output(fname):
         return ARESOutput(fname)
+
+    @property
+    def rv(self):
+        if not self._run_completed:
+            raise ValueError('Run ARES before obtaining the radial velocity')
+        return ARES.get_rv()
+
 
     @staticmethod
     def get_rv(fname='logARES.txt'):
