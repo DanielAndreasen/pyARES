@@ -90,6 +90,15 @@ class ARESOutput:
         self.df.columns = _COLS
         df.set_index('wavelength', inplace=True)
 
+    def __len__(self):
+        return len(self.df)
+
+    def combine_df(self, other) -> pd.DataFrame:
+        if not isinstance(other, ARESOutput):
+            raise TypeError(f'other is of type {type(other)} which is not compatible for this method')
+        return self.df.join(other.df, how='outer', lsuffix='_l', rsuffix='_r')
+
+
     def percent_diff(self, other, col):
         """Find the percent difference between two ARES output for a given column.
         Is given by:
